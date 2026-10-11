@@ -1,0 +1,39 @@
+name: Build modern APK
+
+on:
+  push:
+    paths:
+      - 'wifivoice-modern.zip'
+      - '.github/workflows/build-modern.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unzip sources
+        run: unzip -o wifivoice-modern.zip -d modern
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;34.0.0'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+
+      - name: Build debug APK
+        run: gradle -p modern assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wifivoice-modern-debug-apk
+          path: modern/app/build/outputs/apk/debug/*.apk
